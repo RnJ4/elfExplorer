@@ -34,7 +34,8 @@ jobs:
         with:
           name: QtHelloWorld-${{ runner.os }}-${{ matrix.buildArch }}-${{ matrix.qtVersion }}
 
-          path: build
+          path: deploy
+
 
 
 
