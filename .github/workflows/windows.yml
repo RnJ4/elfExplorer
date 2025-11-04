@@ -1,111 +1,94 @@
-name: Windows
-on: 
-  # push代码时触发workflow
-  push:
-    paths:
-      - '*.pro'
-      - 'src/**'
-      - '.github/workflows/windows.yml'
-  pull_request:
-    paths:
-      - '*.pro'
-      - 'src/**'
-      - '.github/workflows/windows.yml' 
-jobs:
-  build:
-    name: Build
-    # 运行平台， windows-latest目前是windows server 2019 
-    # 参考文档 https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-    runs-on: windows-2022
-    strategy:
-      # 矩阵配置
-      matrix:
-        include:
-          # 5.9.9 参考 https://mirrors.cloud.tencent.com/qt/online/qtsdkrepository/windows_x86/desktop/qt5_599/
-          - qt_ver: 5.9.9
-            qt_arch: win32_msvc2015
-            msvc_arch: x86
-            qt_arch_install: msvc2015
-          - qt_ver: 5.9.9
-            qt_arch: win64_msvc2017_64
-            msvc_arch: x64
-            qt_arch_install: msvc2017_64
-          # 5.12.10 参考 https://mirrors.cloud.tencent.com/qt/online/qtsdkrepository/windows_x86/desktop/qt5_51210/            
-          - qt_ver: 5.12.10
-            qt_arch: win32_msvc2017
-            msvc_arch: x86
-            qt_arch_install: msvc2017
-          - qt_ver: 5.12.10            
-            qt_arch: win64_msvc2017_64
-            msvc_arch: x64
-            qt_arch_install: msvc2017_64
-          # 5.15.2 参考 https://mirrors.cloud.tencent.com/qt/online/qtsdkrepository/windows_x86/desktop/qt5_5152/
-          - qt_ver: 5.15.2
-            qt_arch: win32_msvc2019
-            msvc_arch: x86
-            qt_arch_install: msvc2019
-          - qt_ver: 5.15.2          
-            qt_arch: win64_msvc2019_64
-            msvc_arch: x64
-            qt_arch_install: msvc2019_64          
-          # 6.0.0 参考 https://mirrors.cloud.tencent.com/qt/online/qtsdkrepository/windows_x86/desktop/qt6_600/
-          - qt_ver: 6.0.0
-            qt_arch: win64_msvc2019_64
-            msvc_arch: x64
-            qt_arch_install: msvc2019_64
-          # 6.2.2
-          - qt_ver: 6.2.2
-            qt_arch: win64_msvc2019_64
-            msvc_arch: x64
-            qt_arch_install: msvc2019_64
-    env:
-      targetName: elfExplorer-Qt.exe
-    # 步骤
-    steps:
-      # 安装Qt
-      - name: Install Qt
-        # 使用外部action。这个action专门用来安装Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          # Version of Qt to install
-          version: ${{ matrix.qt_ver }}
-          # Target platform for build
-          # target: ${{ matrix.qt_target }}
-          arch: ${{ matrix.qt_arch }}
-          cached: 'false'
-          aqtversion: '==2.0.5'          
-      # 拉取代码
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
-      # msvc编译
-      - name: msvc-build
-        id: build
-        shell: cmd
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
-          qmake
-          nmake
-          echo winSdkDir=%WindowsSdkDir% >> %GITHUB_ENV%
-          echo winSdkVer=%WindowsSdkVersion% >> %GITHUB_ENV%
-          echo vcToolsInstallDir=%VCToolsInstallDir% >> %GITHUB_ENV%
-          echo vcToolsRedistDir=%VCToolsRedistDir% >> %GITHUB_ENV%
-      # 打包 
-      - name: package
-        id: package      
-        env:
-          archiveName: ${{ matrix.qt_ver }}-${{ matrix.qt_target }}-${{ matrix.qt_arch }}
-          msvcArch: ${{ matrix.msvc_arch }}          
-        shell: pwsh
-        run: |
-          & scripts\windows-publish.ps1 ${env:archiveName} ${env:targetName}
-          # 记录packageName给后续step
-           $name = ${env:archiveName}
-           echo "::set-output name=packageName::$name"       
-      # tag 查询github-Release
-      # 上传artifacts          
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.package.outputs.packageName }}
-          path: ${{ steps.package.outputs.packageName }}
+name: build_Qt5.15.17_msvc2022
 
+on: workflow_dispatch
+#on: [push, pull_request]
+
+env:
+  QT_VERSION: 5.15.17
+  QT_VERSION2: 5.15
+  FILE_NAME: static-Release_msvc2022_64
+
+jobs:
+  windows_msvc_static_release:
+    runs-on: windows-latest
+
+    steps:
+    # 检出本仓库
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    # 安装python
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+        architecture: 'x64'
+
+    # 安装 Perl    
+    - name: Setup Perl
+      run: |
+        cd ..  #Directory: D:\a\buildQt
+        curl -L -o strawberry-perl-64bit-portable.zip https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54201_64bit/strawberry-perl-5.42.0.1-64bit-portable.zip
+        unzip -q strawberry-perl-64bit-portable.zip -d ./Strawberry
+
+    # 安装 jom
+    - name: Setup jom
+      run: |
+        cd ..  #Directory: D:\a\buildQt
+        curl -L -o jom.zip  http://download.qt.io/official_releases/jom/jom.zip
+        unzip -q jom.zip -d ./jom
+
+    # 安装msvc
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+      with:
+        msbuild-architecture: x64
+
+    # 安装vsdevenv
+    - name: Setup vsdevenv
+      uses: seanmiddleditch/gha-setup-vsdevenv@master
+
+    # 构建Qt
+    - name: Build Qt
+      run: |
+        #ls     #Directory: D:\a\buildQt\buildQt(即仓库目录)
+        #D:\a\buildQt                                上级目录，这里当做根目录
+        #D:\a\buildQt\Qt                             Qt目录
+        #D:\a\buildQt\Qt\${{env.QT_VERSION}}         Qt目录源代码和build文件夹存放目录
+        #D:\a\buildQt\Qt\${{env.QT_VERSION}}-static  Qt安装目录
+        
+        # 创建文件夹
+        cd ..  #Directory: D:\a\buildQt
+        mkdir -p Qt
+
+        # 创建文件夹
+        cd Qt   #Directory: D:\a\buildQt\Qt
+        mkdir -p ${{env.QT_VERSION}}
+        mkdir -p ${{env.QT_VERSION}}-static
+
+        # 下载源代码并解压，源代码目录D:\a\buildQt\Qt\${{env.QT_VERSION}}\XXX
+        curl -L -o qt-everywhere-opensource-src.zip https://download.qt.io/archive/qt/${{env.QT_VERSION2}}/${{env.QT_VERSION}}/single/qt-everywhere-opensource-src-${{env.QT_VERSION}}.zip
+        unzip -q qt-everywhere-opensource-src.zip -d ./${{env.QT_VERSION}}
+
+        # 调用编译脚本
+        cmd.exe /c "call `"D:\a\buildQt\buildQt\buildQt5\build-Qt5msvc2022_64.cmd`""
+
+    # 打包
+    - name: Package binaries
+      run: |
+        #ls     #Directory: D:\a\buildQt\buildQt(即仓库目录)
+        7z a Qt_${{env.QT_VERSION}}-${{env.FILE_NAME}}.7z ../Qt/${{env.QT_VERSION}}-static -mx=9
+
+    # 上传
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Qt_${{env.QT_VERSION}}-${{env.FILE_NAME}}
+        path: Qt_${{env.QT_VERSION}}-${{env.FILE_NAME}}.7z
+
+    # 发布
+    - name: TempRelease
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: temp_Qt_${{env.QT_VERSION}}-${{env.FILE_NAME}}
+        release_name: TempRelease_Qt_${{env.QT_VERSION}}-${{env.FILE_NAME}}
+        files: Qt_${{env.QT_VERSION}}-${{env.FILE_NAME}}.7z
