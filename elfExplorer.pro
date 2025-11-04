@@ -1,5 +1,5 @@
 QT += qml quick core
-LIBS += -L$$[QT_INSTALL_LIBS] -lQt5Core -lQt5Gui -lQt5Qml -lQt5Quick -lQt5Network
+
 
 CONFIG += c++11
 CONFIG += console
