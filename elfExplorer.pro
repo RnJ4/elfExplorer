@@ -1,5 +1,6 @@
-QT += core gui qml quick quickcontrols2 quickdialogs qmlmodels
-
+QT += core gui qml quick quickcontrols2 quicklayouts quickdialogs qmlmodels  # 覆盖所有 import 模块
+# Qt.labs.settings：Qt 5.15 支持，但显式添加
+QT += labs.settings
 
 CONFIG += c++11
 CONFIG += console
