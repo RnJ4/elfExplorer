@@ -79,7 +79,7 @@ void FileManager::decodeFile(QString filename, quint32 offset, quint32 size)
     buffer.truncate(sz);
     if(!ext.compare("MES", Qt::CaseInsensitive))
     {
-        auto decoder = MesDecoder(this);
+        MesDecoder decoder(this);
         m_mesScript = decoder.Decode(buffer);
         emit mesScriptChanged(m_mesScript);
         return;
