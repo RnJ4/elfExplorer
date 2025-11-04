@@ -7,19 +7,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: 'macos-latest'
-            buildArch: 'Universal'
-            qtVersion: '5.6'
           - runner: 'windows-latest'
             buildArch: 'X64'
             qtVersion: '5.6'
+            qtArch: 'win64_msvc2013_64'
           - runner: 'windows-11-arm'
-            buildArch: 'Arm64'
-            qtVersion: '5.6'
-          - runner: 'ubuntu-22.04'
-            buildArch: 'X64'
-            qtVersion: '5.6'
-          - runner: 'ubuntu-24.04-arm'
             buildArch: 'Arm64'
             qtVersion: '5.6'
     runs-on: ${{ matrix.runner }}
@@ -43,5 +35,6 @@ jobs:
           name: QtHelloWorld-${{ runner.os }}-${{ matrix.buildArch }}-${{ matrix.qtVersion }}
 
           path: build
+
 
 
