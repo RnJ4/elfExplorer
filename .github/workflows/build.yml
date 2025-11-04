@@ -9,11 +9,11 @@ jobs:
         include:
           - runner: 'windows-latest'
             buildArch: 'X64'
-            qtVersion: '5.15'
+            qtVersion: '6.9'
             
           - runner: 'windows-11-arm'
             buildArch: 'Arm64'
-            qtVersion: '5.9'
+            qtVersion: '6.9'
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
@@ -35,6 +35,7 @@ jobs:
           name: QtHelloWorld-${{ runner.os }}-${{ matrix.buildArch }}-${{ matrix.qtVersion }}
 
           path: build
+
 
 
 
