@@ -1,4 +1,4 @@
-QT += qml quick core
+QT += core gui qml quick quickcontrols2 quickdialogs qmlmodels
 
 
 CONFIG += c++11
