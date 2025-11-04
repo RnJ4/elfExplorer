@@ -41,10 +41,7 @@ $appName = "elfExplorer"
 
 if ($IsWindows) {
     windeployqt `
-        --no-compiler-runtime `
         --no-translations `
-        --no-system-d3d-compiler `
-        --no-system-dxc-compiler `
         --no-opengl-sw `
         "$appName.exe"
 } elseif ($IsMacOS) {
