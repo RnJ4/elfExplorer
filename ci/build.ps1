@@ -44,9 +44,10 @@ if ($IsWindows) {
         --no-translations `
         --no-opengl-sw `
         --release `
-        --qmldir . `
+        --qmldir "D:/a/elfExplorer/" `
         --dir deploy/ `
         --qmlimport "D:/a/elfExplorer/Qt/5.15.2/msvc2019_64/qml" `
+        --verbose `
         "$appName.exe"
 } elseif ($IsMacOS) {
     macdeployqt "$appName.app"
