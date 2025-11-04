@@ -47,8 +47,6 @@ if ($IsWindows) {
         --qmldir . `
         --dir deploy/ `
         --qmlimport "D:/a/elfExplorer/Qt/5.15.2/msvc2019_64/qml" `
-        --qmlimport "D:/a/elfExplorer/Qt/5.15.2/msvc2019_64/qml/Qt/labs"`
-        
         "$appName.exe"
 } elseif ($IsMacOS) {
     macdeployqt "$appName.app"
