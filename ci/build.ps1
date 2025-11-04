@@ -37,7 +37,7 @@ if ($IsWindows) {
 }
 
 Set-Location "build"
-$appName = "QtHelloWorld"
+$appName = "elfExplorer"
 
 if ($IsWindows) {
     windeployqt `
