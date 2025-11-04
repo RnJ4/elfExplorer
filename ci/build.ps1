@@ -43,6 +43,9 @@ if ($IsWindows) {
     windeployqt `
         --no-translations `
         --no-opengl-sw `
+        --release `
+        --qmldir . `
+        --dir deploy/ `
         "$appName.exe"
 } elseif ($IsMacOS) {
     macdeployqt "$appName.app"
